@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="d-flex justify-content-center">
     <!-- bs4 分頁 -->
     <nav aria-label="Page navigation example">
       <ul class="pagination">
