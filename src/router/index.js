@@ -2,10 +2,10 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 // 自訂元件
-// import HelloWorld from "@/components/HelloWorld";
 import Login from "@/components/pages/Login";
 import Dashboard from "@/components/Dashboard";
 import Products from "@/components/pages/Products";
+import CustomerOrder from "@/components/pages/CustomerOrder";
 Vue.use(VueRouter);
 
 // 輸出到main.js
@@ -16,11 +16,6 @@ export default new VueRouter({
       path: "*",
       redirect: "/login"
     },
-    // {
-    //   name: "HelloWorld",
-    //   path: "/",
-    //   component: HelloWorld
-    // },
     {
       name: "Login",
       path: "/login", //路徑使用小寫
@@ -38,6 +33,30 @@ export default new VueRouter({
           component: Products,
           //路由訊息，代表需驗證
           meta: { requiresAuth: true }
+        },
+        {
+          name: "Coupons",
+          path: "coupons",
+          component: Products, //!待處理
+          meta: { requiresAuth: true }
+        },
+        {
+          name: "orders",
+          path: "Orders",
+          component: Products, //!待處理
+          meta: { requiresAuth: true }
+        }
+      ]
+    },
+    {
+      name: "Dashboard",
+      path: "/",
+      component: Dashboard,
+      children: [
+        {
+          name: "CustomerOrder",
+          path: "customer_order", //路徑使用小寫
+          component: CustomerOrder
         }
       ]
     }

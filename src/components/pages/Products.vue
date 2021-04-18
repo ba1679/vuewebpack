@@ -16,25 +16,31 @@
           <th width="120">原價</th>
           <th width="120">售價</th>
           <th width="100">啟用狀態</th>
-          <th width="90">編輯</th>
+          <th width="150">編輯</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="item in products" :key="item.id">
           <td>{{ item.category }}</td>
           <td>{{ item.title }}</td>
-          <td class="text-right">{{ item.origin_price }}</td>
-          <td class="text-right">{{ item.price }}</td>
+          <td class="text-right">{{ item.origin_price | currency }}</td>
+          <td class="text-right">{{ item.price | currency }}</td>
           <td>
             <span v-if="item.is_enabled" class="text-success">啟用</span>
             <span v-else>未啟用</span>
           </td>
-          <td>
+          <td class="d-flex">
             <button
-              class="btn btn-outline-primary btn-sm"
+              class="btn btn-outline-primary btn-sm mr-1"
               @click="openModal(false, item)"
             >
               編輯
+            </button>
+            <button
+              class="btn btn-outline-danger btn-sm"
+              @click="deleteModal(item.id)"
+            >
+              刪除
             </button>
           </td>
         </tr>
@@ -254,7 +260,9 @@
             >
               取消
             </button>
-            <button type="button" class="btn btn-danger">確認刪除</button>
+            <button type="button" class="btn btn-danger" @click="deleteProduct">
+              確認刪除
+            </button>
           </div>
         </div>
       </div>
@@ -273,6 +281,7 @@ export default {
       products: [], //產品列表get到後存到這邊
       pagination: {}, //將api回傳的pagination傳到這邊
       cacheProduct: {},
+      productId: "",
       isNew: false,
       isLoading: false,
       status: {
@@ -311,6 +320,7 @@ export default {
       // 透過click觸發modal開啟
       $("#productModal").modal("show");
     },
+    // 新增&編輯產品
     updateProduct() {
       let api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/product`;
       let httpMethod = "post";
@@ -361,6 +371,26 @@ export default {
             this.$bus.$emit("messagePush", response.data.message, "danger");
           }
         });
+    },
+    // 刪除特定產品確認Modal
+    deleteModal(productId) {
+      this.productId = productId;
+      $("#delProductModal").modal("show");
+    },
+    deleteProduct() {
+      const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/product/${this.productId}`;
+      let vm = this;
+      vm.isLoading = true;
+      this.$http.delete(api).then(response => {
+        if (response.data.success) {
+          vm.isLoading = false;
+          $("#delProductModal").modal("hide");
+          alert("成功刪除產品");
+        } else {
+          alert("刪除失敗");
+        }
+        vm.getProductList(vm.pagination.current_page);
+      });
     }
   },
   created() {

@@ -13,10 +13,12 @@ import "bootstrap"; //官方文件說明寫這樣就可載入,https://getbootstr
 import App from "./App";
 import router from "./router";
 import "./bus";
+import currencyFilter from "./filters/currency";
 
 Vue.config.productionTip = false;
 Vue.use(VueAxios, axios); //套件使用use
 Vue.component("Loading", Loading); //將此套件作為元件使用
+Vue.filter("currency", currencyFilter);
 
 axios.defaults.withCredentials = true;
 
