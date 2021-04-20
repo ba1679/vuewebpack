@@ -6,6 +6,8 @@ import Login from "@/components/pages/Login";
 import Dashboard from "@/components/Dashboard";
 import Products from "@/components/pages/Products";
 import CustomerOrder from "@/components/pages/CustomerOrder";
+import Coupons from "@/components/pages/Coupons";
+import OrderList from "@/components/pages/OrderList";
 Vue.use(VueRouter);
 
 // 輸出到main.js
@@ -37,13 +39,13 @@ export default new VueRouter({
         {
           name: "Coupons",
           path: "coupons",
-          component: Products, //!待處理
+          component: Coupons,
           meta: { requiresAuth: true }
         },
         {
           name: "orders",
-          path: "Orders",
-          component: Products, //!待處理
+          path: "orders",
+          component: OrderList,
           meta: { requiresAuth: true }
         }
       ]

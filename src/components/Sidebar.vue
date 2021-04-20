@@ -21,13 +21,13 @@
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="">
+            <router-link class="nav-link" to="/admin/orders">
               <i class="fas fa-clipboard-list"></i>
               訂單列表
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="">
+            <router-link class="nav-link" to="/admin/coupons">
               <i class="fas fa-tags"></i>
               優惠券
             </router-link>

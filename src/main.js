@@ -8,6 +8,16 @@ import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
 // bootstrap 的js
 import "bootstrap"; //官方文件說明寫這樣就可載入,https://getbootstrap.com/docs/4.5/getting-started/webpack/
+// 表單驗證套件
+import {
+  ValidationObserver, //input驗證元件
+  ValidationProvider, //整體<form>驗證元件
+  extend, //擴充功能
+  localize, //語系設定
+  configure //設定檔
+} from "vee-validate";
+import TW from "vee-validate/dist/locale/zh_TW.json";
+import * as rules from "vee-validate/dist/rules";
 
 // 自行撰寫的程式
 import App from "./App";
@@ -18,6 +28,20 @@ import currencyFilter from "./filters/currency";
 Vue.config.productionTip = false;
 Vue.use(VueAxios, axios); //套件使用use
 Vue.component("Loading", Loading); //將此套件作為元件使用
+// 以下為啟用vee-validate套件相關方法
+Object.keys(rules).forEach(rule => {
+  extend(rule, rules[rule]); //將規則全部導出至擴充功能內
+});
+localize("zh_TW", TW);
+Vue.component("ValidationObserver", ValidationObserver);
+Vue.component("ValidationProvider", ValidationProvider);
+configure({
+  classes: {
+    valid: "is-valid", //針對bs4設定的className
+    invalid: "is-invalid"
+  }
+});
+
 Vue.filter("currency", currencyFilter);
 
 axios.defaults.withCredentials = true;

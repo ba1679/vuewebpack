@@ -1,3 +1,4 @@
+// *todo 電話驗證待處理(不使用套件，自己寫code)
 <template>
   <div>
     <loading :active.sync="isLoading"></loading>
@@ -121,6 +122,175 @@
       :pages="pagination"
       @emitProductPage="getProductsList"
     ></Pagination>
+    <!-- 購物車列表 -->
+    <div class="my-5 row justify-content-center">
+      <div class="my-5 row justify-content-center">
+        <table class="table">
+          <thead>
+            <th></th>
+            <th>品名</th>
+            <th>數量</th>
+            <th>單價</th>
+          </thead>
+          <tbody>
+            <tr v-for="item in carts.carts" :key="item.id">
+              <td class="align-middle">
+                <button type="button" class="btn btn-outline-danger btn-sm">
+                  <i class="far fa-trash-alt" @click="deleteCart(item.id)"></i>
+                </button>
+              </td>
+              <td class="align-middle">
+                {{ item.product.title }}
+                <div class="text-success" v-if="item.coupon">
+                  已套用優惠券
+                </div>
+              </td>
+              <td class="align-middle">
+                {{ item.qty }}/{{ item.product.unit }}
+              </td>
+              <td class="align-middle text-right">
+                {{ parseInt(item.final_total) }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-right">總計</td>
+              <td class="text-right">{{ carts.total }}</td>
+            </tr>
+            <tr v-if="carts.total !== carts.final_total">
+              <td colspan="3" class="text-right text-success">折扣價</td>
+              <td class="text-right text-success">
+                {{ parseInt(carts.final_total) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="input-group mb-3 input-group-sm">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="請輸入優惠碼"
+            v-model="couponCode"
+          />
+          <div class="input-group-append">
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              @click="addCoupon"
+            >
+              套用優惠碼
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 送出訂單表格 -->
+    <h2 class="text-center">訂單資訊</h2>
+    <div class="my-5 row justify-content-center">
+      <validation-observer class="col-md-6" v-slot="{ invalid }">
+        <form @submit.prevent="createOrder">
+          <div class="form-group">
+            <!-- 使用vee-validate套件製作表單 rules=使用"|"隔開多個規則-->
+            <validation-provider rules="required" v-slot="{ errors, classes }">
+              <!-- 輸入框 -->
+              <label for="name">姓名</label>
+              <input
+                id="name"
+                type="text"
+                name="姓名"
+                v-model="form.user.name"
+                class="form-control"
+                placeholder="請輸入姓名"
+                :class="classes"
+              />
+              <!-- 錯誤訊息 -->
+              <span class="invalid-feedback">{{ errors[0] }}</span>
+            </validation-provider>
+          </div>
+          <div class="form-group">
+            <validation-provider
+              rules="required|email"
+              v-slot="{ errors, classes }"
+            >
+              <label for="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                v-model="form.user.email"
+                class="form-control"
+                placeholder="請輸入Email"
+                :class="classes"
+              />
+              <span class="invalid-feedback">{{ errors[0] }}</span>
+            </validation-provider>
+          </div>
+          <div class="form-group">
+            <validation-provider
+              rules="required|integer"
+              v-slot="{ errors, classes }"
+            >
+              <label for="tel">連絡電話</label>
+              <input
+                id="tel"
+                type="tel"
+                name="電話"
+                v-model="form.user.tel"
+                class="form-control"
+                placeholder="請輸入電話"
+                :class="classes"
+              />
+              <span class="invalid-feedback">{{ errors[0] }}</span>
+            </validation-provider>
+          </div>
+          <div class="form-group">
+            <validation-provider rules="required" v-slot="{ errors, classes }">
+              <label for="address">寄送地址</label>
+              <input
+                id="address"
+                type="address"
+                name="寄送地址"
+                v-model="form.user.address"
+                class="form-control"
+                placeholder="請輸入寄送地址"
+                :class="classes"
+              />
+              <span class="invalid-feedback">{{ errors[0] }}</span>
+            </validation-provider>
+          </div>
+          <div class="form-group">
+            <validation-provider rules="required" v-slot="{ errors, classes }">
+              <label for="address">寄送地址</label>
+              <input
+                id="address"
+                type="address"
+                name="寄送地址"
+                v-model="form.user.address"
+                class="form-control"
+                placeholder="請輸入寄送地址"
+                :class="classes"
+              />
+              <span class="invalid-feedback">{{ errors[0] }}</span>
+            </validation-provider>
+          </div>
+          <div class="form-group">
+            <label for="message">留言</label>
+            <textarea
+              name="message"
+              id="message"
+              class="form-control"
+              cols="30"
+              rows="10"
+              v-model="form.message"
+            ></textarea>
+          </div>
+          <div class="text-right">
+            <button class="btn btn-danger" :disabled="invalid">送出訂單</button>
+          </div>
+        </form>
+      </validation-observer>
+    </div>
   </div>
 </template>
 <script>
@@ -132,11 +302,16 @@ export default {
     return {
       products: [],
       product: {},
-      carts: [],
+      carts: [] || JSON.parse(localStorage.getItem("carts")),
+      couponCode: "",
       pagination: {},
       isLoading: false,
       status: {
         loadingItem: ""
+      },
+      form: {
+        user: {},
+        message: ""
       }
     };
   },
@@ -159,7 +334,6 @@ export default {
       const vm = this;
       vm.status.loadingItem = id; //當有id時loading圖示顯示
       this.$http.get(api).then(response => {
-        console.log(response.data);
         vm.product = response.data.product;
         $("#productModal").modal("show");
         vm.status.loadingItem = "";
@@ -168,6 +342,12 @@ export default {
     addtoCart(id, num = 1) {
       const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/cart`;
       const vm = this;
+      //! 重複的品項未刪除，待處理
+      vm.carts.carts.forEach(function(item) {
+        if (item.product_id == id) {
+          num = item.qty + 1;
+        }
+      });
       const cartInfo = {
         product_id: id,
         qty: num
@@ -175,15 +355,74 @@ export default {
       vm.status.loadingItem = id; //當有id時loading圖示顯示
       this.$http.post(api, { data: cartInfo }).then(response => {
         if (response.data.success) {
-          vm.carts.push(response.data.data.product);
+          $("#productModal").modal("hide");
+          vm.getCart();
         }
-        console.log(response.data.data.product);
         vm.status.loadingItem = "";
+      });
+    },
+    getCart() {
+      const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/cart`;
+      const vm = this;
+      this.$http.get(api).then(response => {
+        vm.carts = response.data.data;
+        localStorage.setItem("carts", JSON.stringify(vm.carts));
+      });
+    },
+    deleteCart(id) {
+      const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/cart/${id}`;
+      const vm = this;
+      vm.isLoading = true;
+      this.$http.delete(api).then(response => {
+        if (response.data.success) {
+          vm.isLoading = false;
+          alert("成功刪除");
+          vm.getCart();
+        } else {
+          alert("刪除失敗");
+        }
+      });
+    },
+    addCoupon() {
+      const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/coupon`;
+      const vm = this;
+      vm.isLoading = true;
+      const coupon = {
+        code: vm.couponCode
+      };
+      this.$http.post(api, { data: coupon }).then(response => {
+        vm.isLoading = false;
+        if (response.data.success) {
+          vm.couponCode = "";
+          alert("成功套用優惠券");
+          vm.getCart();
+        } else {
+          alert("無效優惠券");
+        }
+      });
+    },
+    createOrder() {
+      if (this.carts.carts.length == 0) {
+        alert("購物車沒有東西喔!");
+        return;
+      }
+      const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/order`;
+      const vm = this;
+      vm.isLoading = true;
+      this.$http.post(api, { data: vm.form }).then(response => {
+        vm.isLoading = false;
+        alert("成功送出訂單");
+        vm.getCart();
+        vm.form = {
+          user: {},
+          message: ""
+        };
       });
     }
   },
   created() {
     this.getProductsList();
+    this.getCart();
   }
 };
 </script>
